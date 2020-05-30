@@ -121,8 +121,9 @@ public class Miner {
         }
 
         @Override public void run() {
-            block.mineBlock(5);
-            if (Thread.interrupted()) {
+            try {
+                block.mineBlock(5);
+            } catch (InterruptedException e) {
                 return;
             }
             synchronized (Miner.this) {

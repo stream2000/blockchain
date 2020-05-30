@@ -9,7 +9,7 @@ public class Block {
     private String hash;
     private String previousHash;
     private String merkleRoot;
-    private ArrayList<Transaction> transactions = new ArrayList<Transaction>(); //our data will be a simple message.
+    private ArrayList<Transaction> transactions = new ArrayList<>(); //our data will be a simple message.
     private long timeStamp; //as number of milliseconds since 1/1/1970.
     private int nonce;
     //Block Constructor.
@@ -33,10 +33,13 @@ public class Block {
     }
 
     //Increases nonce value until hash target is reached.
-    public void mineBlock(int difficulty) {
+    public void mineBlock(int difficulty) throws InterruptedException{
         merkleRoot = StringUtil.getMerkleRoot(transactions);
         String target = StringUtil.getDificultyString(difficulty); //Create a string with difficulty * "0"
         while (!hash.startsWith(target)) {
+            if(Thread.currentThread().isInterrupted()){
+                throw new InterruptedException();
+            }
             nonce++;
             calculateHash();
         }

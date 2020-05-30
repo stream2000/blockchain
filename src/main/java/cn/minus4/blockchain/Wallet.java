@@ -1,5 +1,7 @@
 package cn.minus4.blockchain;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;
 import java.util.ArrayList;
@@ -8,13 +10,14 @@ import java.util.List;
 public class Wallet {
 
     private PrivateKey privateKey;
-    private final List<Block> blockchain = new ArrayList<>();
     public PublicKey getPublicKey() {
         return publicKey;
     }
 
     private PublicKey publicKey;
-
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
     public Wallet() {
         generateKeyPair();
     }
