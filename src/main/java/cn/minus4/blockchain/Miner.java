@@ -1,22 +1,23 @@
 package cn.minus4.blockchain;
 
+import org.apache.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class Miner {
+    private static Logger logger = Logger.getLogger(Miner.class);
     private final List<Block> blockchain = new ArrayList<>();
     private final List<Miner> Peers;
     private final int me;
     private final BlockingQueue<Transaction> transactions = new LinkedBlockingQueue<>();
+    private final BlockingQueue<List<Block>> broadcastChannel = new LinkedBlockingQueue<>();
+    private final CheckTask checkTask;
     private State state = State.Preparing;
     private Thread gatherTask;
     private Thread mineTask;
-    private CheckTask checkTask;
-    private final BlockingQueue<List<Block>> broadcastChannel = new LinkedBlockingQueue<>();
 
     public Miner(List<Miner> peers, int me) {
         Peers = peers;
@@ -50,6 +51,7 @@ public class Miner {
         gTask.start();
     }
 
+    // TODO: re-calculate the hash of each block, and verify the record inside each block.
     private boolean verifyBlockChain(List<Block> blockchain) {
         return true;
     }
@@ -79,15 +81,16 @@ public class Miner {
                     List<Block> newBlockChain = broadcastChannel.take();
                     if (newBlockChain.size() > currentLength) {
                         // #1 verify is this blockchain is valid, or if it is proof by its power.
+                        //TODO replace current empty logic
                         if (!verifyBlockChain(newBlockChain)) {
                             continue;
                         }
-                        synchronized (Miner.this){
+                        synchronized (Miner.this) {
                             currentLength = blockchain.size();
                             if (newBlockChain.size() > currentLength) {
                                 blockchain.clear();
                                 blockchain.addAll(newBlockChain);
-                                //                        transactions.clear();
+                                transactions.clear();
                                 switch (state) {
                                     case Mining:
                                         mineTask.interrupt();
@@ -122,14 +125,12 @@ public class Miner {
             if (Thread.interrupted()) {
                 return;
             }
-            synchronized (Miner.this){
+            synchronized (Miner.this) {
                 if (state == State.Mining && getPreviousHash().endsWith(previousHash) && length == blockchain.size()) {
                     blockchain.add(block);
-                    System.out.println("Thread " + me + " mined ");
-                    System.out.println("current chain:");
-                    for (int i = 0; i < blockchain.size(); i++) {
-                        System.out.println(blockchain.get(i).getHash());
-                    }
+                    logger.info(
+                        "Thread " + me + " mined, current chain length: " + blockchain.size() + " new block hash:"
+                            + getPreviousHash());
                     checkTask.setCurrentLength(blockchain.size());
                     // broadcast
                     for (int i = 0; i < Peers.size(); i++) {
@@ -164,8 +165,8 @@ public class Miner {
                     Transaction newTransaction = transactions.take();
                     Transaction.verifySignature(newTransaction, newTransaction.getSignature());
                     localTransactions.add(newTransaction);
-                    if (localTransactions.size() == 100) {
-                        synchronized (Miner.this){
+                    if (localTransactions.size() == 1000) {
+                        synchronized (Miner.this) {
                             if (state == State.Preparing) {
                                 if (previousHash.equals(getPreviousHash()) && length == blockchain.size()) {
                                     state = State.Mining;
