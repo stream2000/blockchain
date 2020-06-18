@@ -2,15 +2,17 @@ package cn.minus4.blockchain.utils;
 
 import cn.minus4.blockchain.Transaction;
 import com.google.gson.GsonBuilder;
-
-import java.security.*;
+import java.security.Key;
+import java.security.MessageDigest;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Signature;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
 /**
- * 生成电子签名的工具类
- * Created on 2018/3/10 0010.
+ * 生成电子签名的工具类 Created on 2018/3/10 0010.
  *
  * @author zlf
  * @email i@merryyou.cn
@@ -25,8 +27,9 @@ public class StringUtil {
             StringBuffer hexString = new StringBuffer();
             for (int i = 0; i < hash.length; i++) {
                 String hex = Integer.toHexString(0xff & hash[i]);
-                if (hex.length() == 1)
+                if (hex.length() == 1) {
                     hexString.append('0');
+                }
                 hexString.append(hex);
             }
             return hexString.toString();

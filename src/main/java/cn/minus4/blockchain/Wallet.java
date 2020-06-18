@@ -1,25 +1,29 @@
 package cn.minus4.blockchain;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
-import java.security.*;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.Security;
 import java.security.spec.ECGenParameterSpec;
-import java.util.ArrayList;
-import java.util.List;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class Wallet {
 
-    private PrivateKey privateKey;
-    public PublicKey getPublicKey() {
-        return publicKey;
-    }
-
-    private PublicKey publicKey;
     static {
         Security.addProvider(new BouncyCastleProvider());
     }
+
+    private PrivateKey privateKey;
+    private PublicKey publicKey;
+
     public Wallet() {
         generateKeyPair();
+    }
+
+    public PublicKey getPublicKey() {
+        return publicKey;
     }
 
     private void generateKeyPair() {
@@ -40,6 +44,6 @@ public class Wallet {
     }
 
     public Transaction newEmptyTransaction(PublicKey to) {
-        return new Transaction(publicKey, to,privateKey);
+        return new Transaction(publicKey, to, privateKey);
     }
 }

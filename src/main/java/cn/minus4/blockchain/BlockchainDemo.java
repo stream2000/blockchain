@@ -1,13 +1,11 @@
 package cn.minus4.blockchain;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
-import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class BlockchainDemo {
+
     private final List<Miner> miners = new ArrayList<>();
 
     BlockchainDemo() {

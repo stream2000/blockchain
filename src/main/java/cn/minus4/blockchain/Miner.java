@@ -1,13 +1,13 @@
 package cn.minus4.blockchain;
 
-import org.apache.log4j.Logger;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import org.apache.log4j.Logger;
 
 public class Miner {
+
     private static Logger logger = Logger.getLogger(Miner.class);
     private final List<Block> blockchain = new ArrayList<>();
     private final List<Miner> Peers;
@@ -65,6 +65,7 @@ public class Miner {
     }
 
     class CheckTask implements Runnable {
+
         volatile int currentLength;
 
         public CheckTask(int currentLength, String previousHash) {
@@ -75,7 +76,8 @@ public class Miner {
             this.currentLength = currentLength;
         }
 
-        @Override public void run() {
+        @Override
+        public void run() {
             while (true) {
                 try {
                     List<Block> newBlockChain = broadcastChannel.take();
@@ -110,6 +112,7 @@ public class Miner {
     }
 
     class MineTask implements Runnable {
+
         private final Block block;
         private final String previousHash;
         private final int length;
@@ -120,17 +123,20 @@ public class Miner {
             this.length = length;
         }
 
-        @Override public void run() {
+        @Override
+        public void run() {
             try {
                 block.mineBlock(5);
             } catch (InterruptedException e) {
                 return;
             }
             synchronized (Miner.this) {
-                if (state == State.Mining && getPreviousHash().endsWith(previousHash) && length == blockchain.size()) {
+                if (state == State.Mining && getPreviousHash().endsWith(previousHash)
+                    && length == blockchain.size()) {
                     blockchain.add(block);
                     logger.info(
-                        "Thread " + me + " mined, current chain length: " + blockchain.size() + " new block hash:"
+                        "Thread " + me + " mined, current chain length: " + blockchain.size()
+                            + " new block hash:"
                             + getPreviousHash());
                     checkTask.setCurrentLength(blockchain.size());
                     // broadcast
@@ -151,6 +157,7 @@ public class Miner {
     }
 
     class GatherTransactionTask implements Runnable {
+
         private final String previousHash;
         private final int length;
 
@@ -159,7 +166,8 @@ public class Miner {
             this.length = length;
         }
 
-        @Override public void run() {
+        @Override
+        public void run() {
             ArrayList<Transaction> localTransactions = new ArrayList<>();
             while (true) {
                 try {
@@ -169,12 +177,14 @@ public class Miner {
                     if (localTransactions.size() == 1000) {
                         synchronized (Miner.this) {
                             if (state == State.Preparing) {
-                                if (previousHash.equals(getPreviousHash()) && length == blockchain.size()) {
+                                if (previousHash.equals(getPreviousHash()) && length == blockchain
+                                    .size()) {
                                     state = State.Mining;
                                     gatherTask = null;
                                     Block block = new Block(previousHash);
                                     block.setTransactions(localTransactions);
-                                    Thread task = new Thread(new MineTask(block, previousHash, length));
+                                    Thread task = new Thread(
+                                        new MineTask(block, previousHash, length));
                                     mineTask = task;
                                     task.start();
                                 }
